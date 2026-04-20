@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SPY Bull Call Spread Payoff</title>
+  <style>
+    :root {
+      --bg: #f7f1e7;
+      --panel: #fffaf2;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --grid: #d6c7ae;
+      --accent: #15616d;
+      --accent-soft: #83c5be;
+      --danger: #b42318;
+      --gain: #0f766e;
+      --line-asset: #9c6644;
+      --scenario: #ffb703;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(255, 183, 3, 0.22), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(21, 97, 109, 0.18), transparent 35%),
+        linear-gradient(180deg, #fcf8f1 0%, var(--bg) 100%);
+    }
+
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+    }
+
+    .hero {
+      display: grid;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.6rem);
+      line-height: 0.96;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+    }
+
+    .sub {
+      max-width: 820px;
+      font-size: 1rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .card {
+      background: color-mix(in srgb, var(--panel) 92%, white);
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(75, 62, 44, 0.08);
+      backdrop-filter: blur(8px);
+    }
+
+    .controls {
+      padding: 20px;
+      position: sticky;
+      top: 18px;
+    }
+
+    .panel-title {
+      margin: 0 0 14px;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+
+    .stat {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 10px 0;
+      border-top: 1px solid rgba(31, 41, 55, 0.08);
+      font-size: 0.95rem;
+    }
+
+    .stat:first-of-type {
+      border-top: 0;
+    }
+
+    .stat strong {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .range-wrap {
+      margin: 18px 0 10px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .price-chip {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(21, 97, 109, 0.1);
+      color: var(--accent);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .mini-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .chart-card {
+      padding: 16px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      padding: 4px 8px 10px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .swatch {
+      width: 16px;
+      height: 3px;
+      border-radius: 999px;
+      background: currentColor;
+    }
+
+    .swatch.dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .scenario-list {
+      margin-top: 18px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .scenario-btn {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 16px;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+      font: inherit;
+      color: inherit;
+    }
+
+    .scenario-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(21, 97, 109, 0.28);
+      background: rgba(21, 97, 109, 0.06);
+    }
+
+    .scenario-btn strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .footer-note {
+      margin-top: 16px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .axis-label {
+      fill: var(--muted);
+      font-size: 12px;
+    }
+
+    .tick {
+      fill: var(--muted);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tooltip {
+      position: fixed;
+      pointer-events: none;
+      background: rgba(31, 41, 55, 0.94);
+      color: white;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      line-height: 1.35;
+      opacity: 0;
+      transform: translate(-50%, -120%);
+      transition: opacity 100ms ease;
+      white-space: nowrap;
+      z-index: 10;
+    }
+
+    @media (max-width: 940px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>SPY Payoff at Expiration</h1>
+      <div class="sub">
+        Интерактивный график для спекулятивной позиции <strong>bull call spread</strong>:
+        long <strong>710C</strong>, short <strong>725C</strong>, экспирация <strong>30 апреля 2026</strong>.
+        График показывает стоимость актива на экспирации и итоговый P/L по опционной позиции.
+      </div>
+    </section>
+
+    <section class="grid">
+      <aside class="card controls">
+        <div class="panel-title">Позиция</div>
+        <div class="stat"><span>Стратегия</span><strong>710/725 Call Spread</strong></div>
+        <div class="stat"><span>Дебет входа</span><strong id="debitLabel">$6.27</strong></div>
+        <div class="stat"><span>Макс. убыток</span><strong>$627</strong></div>
+        <div class="stat"><span>Макс. прибыль</span><strong>$873</strong></div>
+        <div class="stat"><span>Breakeven</span><strong id="breakevenLabel">$716.27</strong></div>
+
+        <div class="range-wrap">
+          <label for="spotRange">Цена SPY на экспирации</label>
+          <input id="spotRange" type="range" min="660" max="750" step="1" value="716" />
+          <div class="price-chip" id="spotLabel">$716</div>
+        </div>
+
+        <div class="stat"><span>Стоимость спреда</span><strong id="spreadValue">$6.00</strong></div>
+        <div class="stat"><span>P/L на 1 спред</span><strong id="spreadPnL">-$27</strong></div>
+        <div class="stat"><span>Доходность на риск</span><strong id="returnRisk">-4.31%</strong></div>
+
+        <div class="panel-title" style="margin-top: 20px;">Матожидание</div>
+        <div class="stat"><span>Ожидаемая цена SPY</span><strong id="expectedSpot">$715.50</strong></div>
+        <div class="stat"><span>Ожидаемая стоимость спреда</span><strong id="expectedSpread">$7.95</strong></div>
+        <div class="stat"><span>Ожидаемый P/L</span><strong id="expectedPnL">+$168</strong></div>
+
+        <div class="scenario-list" id="scenarioBreakdown"></div>
+
+        <div class="scenario-list">
+          <button class="scenario-btn" data-price="696">
+            <strong>Медвежий сценарий</strong>
+            SPY = 696, вероятность 20%
+          </button>
+          <button class="scenario-btn" data-price="716">
+            <strong>Базовый сценарий</strong>
+            SPY = 716, вероятность 45%
+          </button>
+          <button class="scenario-btn" data-price="726">
+            <strong>Бычий сценарий</strong>
+            SPY = 726, вероятность 35%
+          </button>
+        </div>
+
+        <div class="mini-note">
+          Расчёт на экспирации: <code>max(S-710,0) - max(S-725,0) - 6.27</code>.
+          Один опционный контракт контролирует 100 акций, поэтому итоговый P/L ниже показан и в долларах на 1 спред.
+        </div>
+      </aside>
+
+      <div class="card chart-card">
+        <div class="legend">
+          <span style="color: var(--accent);"><i class="swatch"></i> P/L bull call spread</span>
+          <span style="color: var(--line-asset);"><i class="swatch"></i> Цена SPY на экспирации</span>
+          <span style="color: var(--scenario);"><i class="swatch dot"></i> Сценарии</span>
+        </div>
+        <svg id="chart" viewBox="0 0 860 560" aria-label="SPY payoff chart"></svg>
+        <div class="footer-note">
+          Наведи на сценарии или двигай ползунок, чтобы посмотреть, как меняется payoff. Вертикальная линия показывает выбранную цену SPY на дату экспирации.
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="tooltip" id="tooltip"></div>
+
+  <script>
+    const config = {
+      minPrice: 660,
+      maxPrice: 750,
+      longStrike: 710,
+      shortStrike: 725,
+      debit: 6.27,
+      multiplier: 100,
+      scenarios: [
+        { name: "Медвежий", price: 696, probability: 0.20 },
+        { name: "Базовый", price: 716, probability: 0.45 },
+        { name: "Бычий", price: 726, probability: 0.35 }
+      ]
+    };
+
+    const svg = document.getElementById("chart");
+    const spotRange = document.getElementById("spotRange");
+    const spotLabel = document.getElementById("spotLabel");
+    const spreadValue = document.getElementById("spreadValue");
+    const spreadPnL = document.getElementById("spreadPnL");
+    const returnRisk = document.getElementById("returnRisk");
+    const tooltip = document.getElementById("tooltip");
+    const scenarioBreakdown = document.getElementById("scenarioBreakdown");
+
+    const width = 860;
+    const height = 560;
+    const margin = { top: 22, right: 24, bottom: 52, left: 72 };
+    const plotWidth = width - margin.left - margin.right;
+    const plotHeight = height - margin.top - margin.bottom;
+
+    const expectedPrice = config.scenarios.reduce((sum, s) => sum + s.price * s.probability, 0);
+
+    function payoff(price) {
+      const longCall = Math.max(price - config.longStrike, 0);
+      const shortCall = Math.max(price - config.shortStrike, 0);
+      return longCall - shortCall - config.debit;
+    }
+
+    function spreadValueAtExpiry(price) {
+      return Math.max(price - config.longStrike, 0) - Math.max(price - config.shortStrike, 0);
+    }
+
+    const data = [];
+    for (let price = config.minPrice; price <= config.maxPrice; price += 1) {
+      data.push({ price, pnl: payoff(price) * config.multiplier });
+    }
+
+    const minPnL = Math.min(...data.map(d => d.pnl), -700);
+    const maxPnL = Math.max(...data.map(d => d.pnl), 900);
+
+    const xScale = price =>
+      margin.left + ((price - config.minPrice) / (config.maxPrice - config.minPrice)) * plotWidth;
+
+    const yScale = pnl =>
+      margin.top + (1 - (pnl - minPnL) / (maxPnL - minPnL)) * plotHeight;
+
+    function money(value, digits = 2) {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits
+      }).format(value);
+    }
+
+    function pnlText(value) {
+      const rounded = Math.round(value);
+      const sign = rounded > 0 ? "+" : "";
+      return `${sign}${money(rounded, 0)}`;
+    }
+
+    function setText(id, value) {
+      document.getElementById(id).textContent = value;
+    }
+
+    function draw() {
+      svg.innerHTML = "";
+
+      const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      bg.setAttribute("x", "0");
+      bg.setAttribute("y", "0");
+      bg.setAttribute("width", width);
+      bg.setAttribute("height", height);
+      bg.setAttribute("rx", "22");
+      bg.setAttribute("fill", "transparent");
+      svg.appendChild(bg);
+
+      const zeroY = yScale(0);
+
+      for (let price = config.minPrice; price <= config.maxPrice; price += 10) {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", xScale(price));
+        line.setAttribute("x2", xScale(price));
+        line.setAttribute("y1", margin.top);
+        line.setAttribute("y2", margin.top + plotHeight);
+        line.setAttribute("stroke", price % 20 === 0 ? "rgba(214,199,174,0.9)" : "rgba(214,199,174,0.45)");
+        line.setAttribute("stroke-width", "1");
+        svg.appendChild(line);
+
+        const tick = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        tick.setAttribute("x", xScale(price));
+        tick.setAttribute("y", height - 18);
+        tick.setAttribute("text-anchor", "middle");
+        tick.setAttribute("class", "tick");
+        tick.textContent = price;
+        svg.appendChild(tick);
+      }
+
+      for (let pnl = -600; pnl <= 900; pnl += 300) {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", margin.left);
+        line.setAttribute("x2", margin.left + plotWidth);
+        line.setAttribute("y1", yScale(pnl));
+        line.setAttribute("y2", yScale(pnl));
+        line.setAttribute("stroke", pnl === 0 ? "rgba(31,41,55,0.45)" : "rgba(214,199,174,0.75)");
+        line.setAttribute("stroke-width", pnl === 0 ? "1.6" : "1");
+        svg.appendChild(line);
+
+        const tick = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        tick.setAttribute("x", margin.left - 12);
+        tick.setAttribute("y", yScale(pnl) + 4);
+        tick.setAttribute("text-anchor", "end");
+        tick.setAttribute("class", "tick");
+        tick.textContent = `${pnl > 0 ? "+" : ""}${pnl}`;
+        svg.appendChild(tick);
+      }
+
+      const payoffPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const pathD = data.map((d, index) => `${index === 0 ? "M" : "L"} ${xScale(d.price)} ${yScale(d.pnl)}`).join(" ");
+      payoffPath.setAttribute("d", pathD);
+      payoffPath.setAttribute("fill", "none");
+      payoffPath.setAttribute("stroke", "#15616d");
+      payoffPath.setAttribute("stroke-width", "4");
+      payoffPath.setAttribute("stroke-linejoin", "round");
+      payoffPath.setAttribute("stroke-linecap", "round");
+      svg.appendChild(payoffPath);
+
+      const assetLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      assetLine.setAttribute("x1", xScale(config.minPrice));
+      assetLine.setAttribute("y1", yScale(minPnL));
+      assetLine.setAttribute("x2", xScale(config.maxPrice));
+      assetLine.setAttribute("y2", yScale(maxPnL));
+      assetLine.setAttribute("stroke", "#9c6644");
+      assetLine.setAttribute("stroke-width", "2");
+      assetLine.setAttribute("stroke-dasharray", "7 8");
+      assetLine.setAttribute("opacity", "0.65");
+      svg.appendChild(assetLine);
+
+      [
+        { price: config.longStrike, label: "Long 710C" },
+        { price: config.shortStrike, label: "Short 725C" },
+        { price: expectedPrice, label: "Expected price" }
+      ].forEach(item => {
+        const x = xScale(item.price);
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", x);
+        line.setAttribute("x2", x);
+        line.setAttribute("y1", margin.top);
+        line.setAttribute("y2", margin.top + plotHeight);
+        line.setAttribute("stroke", item.label === "Expected price" ? "rgba(255,183,3,0.9)" : "rgba(31,41,55,0.25)");
+        line.setAttribute("stroke-width", item.label === "Expected price" ? "2" : "1.25");
+        line.setAttribute("stroke-dasharray", item.label === "Expected price" ? "5 5" : "4 7");
+        svg.appendChild(line);
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", x + 6);
+        text.setAttribute("y", margin.top + 16);
+        text.setAttribute("class", "axis-label");
+        text.textContent = item.label === "Expected price" ? `E[S] ${item.price.toFixed(1)}` : item.label;
+        svg.appendChild(text);
+      });
+
+      config.scenarios.forEach(s => {
+        const x = xScale(s.price);
+        const pnl = payoff(s.price) * config.multiplier;
+        const y = yScale(pnl);
+
+        const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        dot.setAttribute("cx", x);
+        dot.setAttribute("cy", y);
+        dot.setAttribute("r", "7");
+        dot.setAttribute("fill", "#ffb703");
+        dot.setAttribute("stroke", "#fffaf2");
+        dot.setAttribute("stroke-width", "3");
+        dot.dataset.tooltip = `${s.name} сценарий\nSPY ${money(s.price, 0)}\nP/L ${pnlText(pnl)}\nВероятность ${(s.probability * 100).toFixed(0)}%`;
+        dot.addEventListener("mouseenter", showTooltip);
+        dot.addEventListener("mouseleave", hideTooltip);
+        dot.addEventListener("mousemove", moveTooltip);
+        svg.appendChild(dot);
+      });
+
+      const xLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      xLabel.setAttribute("x", margin.left + plotWidth / 2);
+      xLabel.setAttribute("y", height - 2);
+      xLabel.setAttribute("text-anchor", "middle");
+      xLabel.setAttribute("class", "axis-label");
+      xLabel.textContent = "Цена SPY на экспирации";
+      svg.appendChild(xLabel);
+
+      const yLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      yLabel.setAttribute("x", 18);
+      yLabel.setAttribute("y", margin.top + plotHeight / 2);
+      yLabel.setAttribute("transform", `rotate(-90 18 ${margin.top + plotHeight / 2})`);
+      yLabel.setAttribute("text-anchor", "middle");
+      yLabel.setAttribute("class", "axis-label");
+      yLabel.textContent = "P/L на 1 спред, USD";
+      svg.appendChild(yLabel);
+
+      updateSelector();
+    }
+
+    function renderExpectedBlock() {
+      const expectedSpreadValue = config.scenarios.reduce(
+        (sum, s) => sum + spreadValueAtExpiry(s.price) * s.probability,
+        0
+      );
+      const expectedPnLDollars = config.scenarios.reduce(
+        (sum, s) => sum + payoff(s.price) * config.multiplier * s.probability,
+        0
+      );
+
+      document.getElementById("expectedSpot").textContent = money(expectedPrice);
+      document.getElementById("expectedSpread").textContent = money(expectedSpreadValue);
+      document.getElementById("expectedPnL").textContent = pnlText(expectedPnLDollars);
+      document.getElementById("expectedPnL").style.color = expectedPnLDollars >= 0 ? "var(--gain)" : "var(--danger)";
+
+      scenarioBreakdown.innerHTML = "";
+      config.scenarios.forEach(s => {
+        const pnl = payoff(s.price) * config.multiplier;
+        const weighted = pnl * s.probability;
+        const row = document.createElement("div");
+        row.className = "scenario-btn";
+        row.innerHTML = `
+          <strong>${s.name} сценарий</strong>
+          SPY ${money(s.price, 0)} · P/L ${pnlText(pnl)} · вклад ${pnlText(weighted)}
+        `;
+        scenarioBreakdown.appendChild(row);
+      });
+    }
+
+    function updateSelector() {
+      const spot = Number(spotRange.value);
+      const spread = spreadValueAtExpiry(spot);
+      const pnlPerShare = spread - config.debit;
+      const pnlDollars = pnlPerShare * config.multiplier;
+
+      spotLabel.textContent = money(spot, 0);
+      spreadValue.textContent = money(spread);
+      spreadPnL.textContent = pnlText(pnlDollars);
+      spreadPnL.style.color = pnlDollars >= 0 ? "var(--gain)" : "var(--danger)";
+      returnRisk.textContent = `${pnlDollars >= 0 ? "+" : ""}${((pnlDollars / (config.debit * config.multiplier)) * 100).toFixed(2)}%`;
+      returnRisk.style.color = pnlDollars >= 0 ? "var(--gain)" : "var(--danger)";
+
+      const existing = document.getElementById("selectorLine");
+      if (existing) existing.remove();
+      const existingDot = document.getElementById("selectorDot");
+      if (existingDot) existingDot.remove();
+
+      const x = xScale(spot);
+      const y = yScale(pnlDollars);
+
+      const selectorLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      selectorLine.setAttribute("id", "selectorLine");
+      selectorLine.setAttribute("x1", x);
+      selectorLine.setAttribute("x2", x);
+      selectorLine.setAttribute("y1", margin.top);
+      selectorLine.setAttribute("y2", margin.top + plotHeight);
+      selectorLine.setAttribute("stroke", "#15616d");
+      selectorLine.setAttribute("stroke-width", "2");
+      selectorLine.setAttribute("stroke-dasharray", "4 4");
+      selectorLine.setAttribute("opacity", "0.85");
+      svg.appendChild(selectorLine);
+
+      const selectorDot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      selectorDot.setAttribute("id", "selectorDot");
+      selectorDot.setAttribute("cx", x);
+      selectorDot.setAttribute("cy", y);
+      selectorDot.setAttribute("r", "8");
+      selectorDot.setAttribute("fill", "#15616d");
+      selectorDot.setAttribute("stroke", "#fff");
+      selectorDot.setAttribute("stroke-width", "3");
+      svg.appendChild(selectorDot);
+    }
+
+    function showTooltip(event) {
+      tooltip.textContent = event.target.dataset.tooltip;
+      tooltip.style.opacity = "1";
+      moveTooltip(event);
+    }
+
+    function moveTooltip(event) {
+      tooltip.style.left = `${event.clientX}px`;
+      tooltip.style.top = `${event.clientY}px`;
+    }
+
+    function hideTooltip() {
+      tooltip.style.opacity = "0";
+    }
+
+    spotRange.addEventListener("input", updateSelector);
+    document.querySelectorAll(".scenario-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        spotRange.value = btn.dataset.price;
+        updateSelector();
+      });
+    });
+
+    setText("debitLabel", money(config.debit));
+    setText("breakevenLabel", money(config.longStrike + config.debit));
+    draw();
+    renderExpectedBlock();
+  </script>
+</body>
+</html>

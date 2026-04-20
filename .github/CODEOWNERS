@@ -1,0 +1,8 @@
+# Replace the placeholder owner below before enabling required code-owner reviews.
+# GitHub loads the first CODEOWNERS file it finds in .github/, the repo root, or docs/.
+
+* @replace-with-your-github-username
+docs/ @replace-with-your-github-username
+knowledge/ @replace-with-your-github-username
+templates/ @replace-with-your-github-username
+projects/scanner/ @replace-with-your-github-username

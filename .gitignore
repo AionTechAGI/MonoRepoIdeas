@@ -1,0 +1,37 @@
+# OS
+Thumbs.db
+.DS_Store
+
+# Editors
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+.venv/
+venv/
+env/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Build and packaging
+build/
+dist/
+*.egg-info/
+
+# Project outputs
+projects/*/outputs/
+projects/*/artifacts/generated/
+projects/*/artifacts/tmp/
+
+# Local runtime clutter
+*.log
