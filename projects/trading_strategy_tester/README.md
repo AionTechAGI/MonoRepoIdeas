@@ -59,6 +59,10 @@ Latest generated report:
 - `artifacts/reports/nvda_5min_rth_2026-01-01_2026-05-14_summary.md`
 - `artifacts/reports/nvda_orb_vwap_baseline_2026-01-01_2026-05-14.md`
 - `artifacts/reports/nvda_orb_vwap_baseline_trades_2026-01-01_2026-05-14.csv`
+- `artifacts/reports/nvda_orb_vwap_sweep_2026-01-01_2026-05-14.md`
+- `artifacts/reports/nvda_orb_vwap_sweep_2026-01-01_2026-05-14.csv`
+- `artifacts/reports/nvda_orb_vwap_continuation_top_2026-01-01_2026-05-14.md`
+- `artifacts/reports/nvda_orb_vwap_hybrid_top_2026-01-01_2026-05-14.md`
 
 Charts use compressed market time so weekends, holidays, and overnight market closures do not create empty visual gaps.
 

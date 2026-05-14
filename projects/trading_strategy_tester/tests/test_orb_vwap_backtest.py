@@ -8,6 +8,8 @@ SRC_ROOT = PROJECT_ROOT / "src"
 sys.path.insert(0, str(SRC_ROOT))
 
 from trading_strategy_tester.backtest.orb_vwap import (
+    MODE_HYBRID,
+    MODE_REVERSAL,
     calculate_buy_and_hold,
     run_orb_vwap_backtest,
     summarize_trades,
@@ -88,6 +90,72 @@ class OrbVwapBacktestTests(unittest.TestCase):
         self.assertEqual(trade.entry_timestamp, "20260102  15:50:00")
         self.assertEqual(trade.exit_reason, "TARGET")
         self.assertGreater(trade.r_multiple, 0)
+        self.assertEqual(trade.setup_type, "CONTINUATION")
+
+    def test_hold_bars_can_delay_continuation_entry(self):
+        bars = [
+            bar("20260102  15:30:00", 100, 101, 99, 100),
+            bar("20260102  15:35:00", 100, 102, 100, 101),
+            bar("20260102  15:40:00", 101, 103, 100, 102),
+            bar("20260102  15:45:00", 102, 105, 102, 104),
+            bar("20260102  15:50:00", 104, 106, 103.5, 105),
+            bar("20260102  15:55:00", 105, 110, 104, 109),
+        ]
+
+        result = run_orb_vwap_backtest(
+            bars,
+            opening_range_bars=3,
+            full_session_bars=6,
+            target_r=1.0,
+            hold_bars=2,
+        )
+
+        self.assertEqual(len(result.trades), 1)
+        self.assertEqual(result.trades[0].signal_timestamp, "20260102  15:50:00")
+
+    def test_reversal_enters_short_after_failed_upside_breakout(self):
+        bars = [
+            bar("20260102  15:30:00", 100, 101, 99, 100),
+            bar("20260102  15:35:00", 100, 102, 100, 101),
+            bar("20260102  15:40:00", 101, 103, 100, 102),
+            bar("20260102  15:45:00", 102, 105, 101, 102.5),
+            bar("20260102  15:50:00", 102.5, 103, 100, 101),
+            bar("20260102  15:55:00", 101, 101, 99, 100),
+        ]
+
+        result = run_orb_vwap_backtest(
+            bars,
+            opening_range_bars=3,
+            full_session_bars=6,
+            mode=MODE_REVERSAL,
+            wick_ratio_threshold=0.4,
+            max_failure_bars=2,
+            reversal_target_mode="OR_MID",
+        )
+
+        self.assertEqual(len(result.trades), 1)
+        trade = result.trades[0]
+        self.assertEqual(trade.direction, "SHORT")
+        self.assertEqual(trade.setup_type, "REVERSAL")
+
+    def test_hybrid_can_report_intraday_benchmarks(self):
+        bars = [
+            bar("20260102  15:30:00", 100, 101, 99, 100),
+            bar("20260102  15:35:00", 100, 102, 100, 101),
+            bar("20260102  15:40:00", 101, 103, 100, 102),
+            bar("20260102  15:45:00", 102, 105, 102, 104),
+            bar("20260102  15:50:00", 104, 110, 103, 107),
+        ]
+
+        result = run_orb_vwap_backtest(
+            bars,
+            opening_range_bars=3,
+            full_session_bars=5,
+            mode=MODE_HYBRID,
+        )
+
+        self.assertEqual(result.daily_open_close_long.pnl_per_share, 7)
+        self.assertEqual(result.daily_after_or_long.sessions, 1)
 
     def test_buy_and_hold_uses_first_open_and_last_close(self):
         bars = [
