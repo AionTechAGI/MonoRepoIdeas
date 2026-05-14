@@ -1,4 +1,4 @@
-# ADR 0001: MonoRepoIdeas layout for C:\develop
+# ADR 0001: MonoRepoIdeas layout for C:\develop\MonoRepoIdeas
 
 ## Status
 
@@ -6,7 +6,7 @@ Accepted on 2026-04-20.
 
 ## Decision
 
-`C:\develop` becomes the git root for active product work and is linked to the `AionTechAGI/MonoRepoIdeas` GitHub repository.
+`C:\develop\MonoRepoIdeas` becomes the git root for active product work and is linked to the `AionTechAGI/MonoRepoIdeas` GitHub repository.
 
 The repository uses a lightweight monorepo structure:
 

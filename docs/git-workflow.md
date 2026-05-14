@@ -8,9 +8,11 @@
 
 ## Commits
 
+- Commit completed changes before ending a work session so the next Codex or developer can continue from an explicit checkpoint.
 - Keep commits focused on one change or one cohesive migration.
 - Avoid mixing structural moves with unrelated feature work when possible.
 - Update docs in the same change when behavior or repo layout changes.
+- Leave `git status` clean before handoff, or state exactly why any changes remain uncommitted.
 
 ## Pull requests
 

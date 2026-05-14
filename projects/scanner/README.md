@@ -13,7 +13,7 @@
 ## Quick start
 
 ```powershell
-cd C:\develop\projects\scanner
+cd C:\develop\MonoRepoIdeas\projects\scanner
 py -m pip install -r requirements.txt
 py -m streamlit run app.py
 ```
@@ -21,14 +21,14 @@ py -m streamlit run app.py
 You can also use:
 
 ```powershell
-cd C:\develop\projects\scanner
+cd C:\develop\MonoRepoIdeas\projects\scanner
 .\run_scanner.bat
 ```
 
 ## Tests
 
 ```powershell
-cd C:\develop\projects\scanner
+cd C:\develop\MonoRepoIdeas\projects\scanner
 py -m unittest discover -s tests
 ```
 

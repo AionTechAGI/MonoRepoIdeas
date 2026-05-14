@@ -1,6 +1,6 @@
 # MonoRepoIdeas
 
-`MonoRepoIdeas` is the working monorepo under `C:\develop` and is linked to:
+`MonoRepoIdeas` is the working monorepo at `C:\develop\MonoRepoIdeas` and is linked to:
 
 - [AionTechAGI/MonoRepoIdeas](https://github.com/AionTechAGI/MonoRepoIdeas)
 
@@ -30,7 +30,7 @@ See also:
 ## Quick start for scanner
 
 ```powershell
-cd C:\develop\projects\scanner
+cd C:\develop\MonoRepoIdeas\projects\scanner
 py -m pip install -r requirements.txt
 py -m streamlit run app.py
 ```
@@ -38,7 +38,7 @@ py -m streamlit run app.py
 Run tests from the project root:
 
 ```powershell
-cd C:\develop\projects\scanner
+cd C:\develop\MonoRepoIdeas\projects\scanner
 py -m unittest discover -s tests
 ```
 
