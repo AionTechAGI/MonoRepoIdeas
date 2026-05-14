@@ -63,6 +63,10 @@ Latest generated report:
 - `artifacts/reports/nvda_orb_vwap_sweep_2026-01-01_2026-05-14.csv`
 - `artifacts/reports/nvda_orb_vwap_continuation_top_2026-01-01_2026-05-14.md`
 - `artifacts/reports/nvda_orb_vwap_hybrid_top_2026-01-01_2026-05-14.md`
+- `artifacts/reports/nvda_exit_policy_analysis_2026-01-01_2026-05-14.md`
+- `artifacts/reports/nvda_exit_policy_analysis_2026-01-01_2026-05-14.csv`
+
+Current NVDA 5-minute in-sample finding: fixed `0.80R` is the best simple continuation exit so far, with `0.75R` very close. Larger fixed targets and session-close runner variants underperform because most trades do not reach `1.00R+` and runners give back too much before close.
 
 Charts use compressed market time so weekends, holidays, and overnight market closures do not create empty visual gaps.
 
