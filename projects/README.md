@@ -11,3 +11,4 @@ This directory contains product folders for `MonoRepoIdeas`.
 ## Current products
 
 - `scanner/`
+- `trading_strategy_tester/`

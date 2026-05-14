@@ -15,6 +15,7 @@
 ## Current projects
 
 - `projects/scanner/` is the current valuation and market research app migrated from `stock_valuation_lab`.
+- `projects/trading_strategy_tester/` is the workspace for trading strategy research and backtesting.
 
 See also:
 
