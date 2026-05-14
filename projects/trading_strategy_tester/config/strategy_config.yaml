@@ -1,0 +1,45 @@
+mode:
+  trading_enabled: false
+  paper_trading_only: true
+  read_only_signals: true
+
+session:
+  timezone: "America/New_York"
+  regular_open: "09:30"
+  regular_close: "16:00"
+  opening_range_minutes: 15
+  force_flat_time: "15:45"
+
+risk:
+  risk_per_trade_equity_fraction: 0.0025
+  max_daily_loss: 500.0
+  max_position_size: 100
+  max_number_of_trades: 3
+  max_number_of_reversals: 1
+  max_total_open_positions: 1
+  max_symbol_loss: 250.0
+  max_spread_bps: 5.0
+
+breakout:
+  breakout_buffer_type: "bps"
+  breakout_buffer_ticks: 1
+  breakout_buffer_bps: 5
+  breakout_buffer_atr_fraction: 0.05
+  hold_bars_for_acceptance: 1
+  continuation_threshold: 0.65
+
+reversal:
+  enabled: true
+  max_failure_minutes: 3
+  reclaim_required_close_inside: true
+  reclaim_depth_fraction: 0.0
+  wick_ratio_threshold: 0.6
+  reversal_threshold: 0.65
+  cooldown_after_failed_signal_minutes: 3
+  max_flips_per_day: 1
+
+data:
+  historical_bar_size: "1 min"
+  realtime_source: "5 sec bars"
+  cache_database: "storage/trading_strategy_tester.sqlite3"
+  block_delayed_data_for_orders: true

@@ -1,0 +1,10 @@
+# Do not hardcode symbols in code. Configure research/paper symbols here.
+instruments: []
+
+# Example:
+# instruments:
+#   - symbol: "SPY"
+#     sec_type: "STK"
+#     exchange: "SMART"
+#     currency: "USD"
+#     primary_exchange: "ARCA"

@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trading-strategy-tester"
+version = "0.1.0"
+description = "Research and paper-trading system for an IBKR 15-minute ORB/VWAP strategy."
+requires-python = ">=3.11"
+dependencies = [
+  "ibapi>=9.81.1",
+  "PyYAML>=6.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

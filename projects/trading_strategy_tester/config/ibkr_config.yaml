@@ -1,0 +1,20 @@
+# Interactive Brokers paper connection defaults.
+# Do not put live account numbers here.
+host: "127.0.0.1"
+paper_tws_port: 7497
+paper_gateway_port: 4002
+port: 7497
+client_id: 3101
+
+# Leave empty to auto-detect the first managed account during smoke tests.
+# For trading workflows, set this explicitly to a DU-prefixed paper account.
+account: ""
+
+paper_trading_only: true
+trading_enabled: false
+allow_delayed_data_for_testing: false
+connection_timeout_seconds: 15
+
+startup_warning:
+  show: true
+  require_du_account: true
