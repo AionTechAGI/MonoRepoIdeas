@@ -58,6 +58,8 @@ Latest generated report:
 - `artifacts/reports/nvda_5min_rth_2026-01-01_2026-05-14.html`
 - `artifacts/reports/nvda_5min_rth_2026-01-01_2026-05-14_summary.md`
 
+Charts use compressed market time so weekends, holidays, and overnight market closures do not create empty visual gaps.
+
 ## Structure
 
 - `docs/` local project documentation

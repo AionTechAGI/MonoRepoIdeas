@@ -13,6 +13,7 @@ from trading_strategy_tester.data.range_downloader import (
     monthly_chunks,
     parse_ibkr_bar_timestamp,
 )
+from trading_strategy_tester.research.charts import market_time_ticks
 
 
 class RangeDownloaderTests(unittest.TestCase):
@@ -37,6 +38,19 @@ class RangeDownloaderTests(unittest.TestCase):
         self.assertEqual(parsed.year, 2026)
         self.assertEqual(parsed.hour, 15)
         self.assertEqual(parsed.minute, 30)
+
+    def test_market_time_ticks_use_bar_indices(self):
+        timestamps = [
+            parse_ibkr_bar_timestamp("20260102  15:30:00"),
+            parse_ibkr_bar_timestamp("20260102  15:35:00"),
+            parse_ibkr_bar_timestamp("20260105  15:30:00"),
+        ]
+
+        tick_values, tick_text = market_time_ticks(timestamps, max_ticks=2)
+
+        self.assertEqual(tick_values, [0, 2])
+        self.assertIn("Jan 02", tick_text[0])
+        self.assertIn("Jan 05", tick_text[1])
 
 
 if __name__ == "__main__":
