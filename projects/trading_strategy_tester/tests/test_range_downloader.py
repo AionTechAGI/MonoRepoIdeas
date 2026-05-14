@@ -1,4 +1,5 @@
 import sys
+import tempfile
 import unittest
 from datetime import date
 from pathlib import Path
@@ -13,7 +14,9 @@ from trading_strategy_tester.data.range_downloader import (
     monthly_chunks,
     parse_ibkr_bar_timestamp,
 )
+from trading_strategy_tester.data.historical_loader import HistoricalBar
 from trading_strategy_tester.research.charts import market_time_ticks
+from trading_strategy_tester.research.charts import write_candlestick_volume_chart
 
 
 class RangeDownloaderTests(unittest.TestCase):
@@ -51,6 +54,28 @@ class RangeDownloaderTests(unittest.TestCase):
         self.assertEqual(tick_values, [0, 2])
         self.assertIn("Jan 02", tick_text[0])
         self.assertIn("Jan 05", tick_text[1])
+
+    def test_chart_uses_custom_time_formatter_for_compressed_axis(self):
+        bars = [
+            HistoricalBar(
+                timestamp="20260102  15:30:00",
+                open=100.0,
+                high=101.0,
+                low=99.0,
+                close=100.5,
+                volume=1000,
+                wap=100.2,
+                bar_count=10,
+            )
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "chart.html"
+            write_candlestick_volume_chart(bars, output, "Test Chart")
+            html = output.read_text(encoding="utf-8")
+
+        self.assertIn("timestampByTime", html)
+        self.assertIn("timeFormatter", html)
+        self.assertIn("2026-01-02 15:30", html)
 
 
 if __name__ == "__main__":

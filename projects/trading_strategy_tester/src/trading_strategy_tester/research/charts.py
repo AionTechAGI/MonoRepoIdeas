@@ -197,11 +197,15 @@ def _render_lightweight_chart_html(
   <script>
     const rawData = {data_json};
     const tickMap = {tick_map_json};
+    const timestampByTime = new Map(rawData.map((bar) => [bar.time, bar.timestamp]));
     const container = document.getElementById('chart');
     const tooltip = document.getElementById('tooltip');
 
     const chart = LightweightCharts.createChart(container, {{
       autoSize: true,
+      localization: {{
+        timeFormatter: (time) => timestampByTime.get(time) || String(time),
+      }},
       layout: {{
         background: {{ type: 'solid', color: '#ffffff' }},
         textColor: '#17233c',
