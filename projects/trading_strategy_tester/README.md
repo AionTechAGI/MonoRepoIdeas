@@ -65,8 +65,13 @@ Latest generated report:
 - `artifacts/reports/nvda_orb_vwap_hybrid_top_2026-01-01_2026-05-14.md`
 - `artifacts/reports/nvda_exit_policy_analysis_2026-01-01_2026-05-14.md`
 - `artifacts/reports/nvda_exit_policy_analysis_2026-01-01_2026-05-14.csv`
+- `artifacts/reports/nvda_final_strategy_review_2026-01-01_2026-05-14.md`
+- `artifacts/reports/nvda_final_strategy_candidates_2026-01-01_2026-05-14.csv`
+- `artifacts/reports/nvda_final_strategy_walk_forward_2026-01-01_2026-05-14.csv`
 
 Current NVDA 5-minute in-sample finding: fixed `0.80R` is the best simple continuation exit so far, with `0.75R` very close. Larger fixed targets and session-close runner variants underperform because most trades do not reach `1.00R+` and runners give back too much before close.
+
+Final NVDA strategy review verdict: reject the current ORB + VWAP / failed-breakout rule set as a deployable trading candidate. It has positive in-sample gross PnL but fails walk-forward validation after a 5 bps cost stress.
 
 Charts use compressed market time so weekends, holidays, and overnight market closures do not create empty visual gaps.
 

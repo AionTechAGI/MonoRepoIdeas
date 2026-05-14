@@ -85,7 +85,17 @@ Buy-and-hold still wins on this sample because `NVDA` had strong multi-day trend
 
 ## Next validation step
 
-Do not optimize further on this same window as if it were final. The next step is walk-forward validation:
+The final review has now been run for the current candidate family:
+
+- Best in-sample candidate: `continuation_0.80R`
+- Best in-sample gross PnL: `20.66` per share
+- Best in-sample net PnL after 5 bps: `12.24` per share
+- Walk-forward gross PnL: `-0.53` per share
+- Walk-forward net PnL after 5 bps: `-5.39` per share
+- Positive walk-forward windows: `1` / `3`
+- Verdict: reject the current rule set as a deployable trading strategy
+
+Do not optimize further on this same window as if it were final. If research continues, the next step is not another R-target tweak. It must be a different entry filter or regime classifier, followed by the same walk-forward final review:
 
 1. Split data by month.
 2. Optimize on prior windows.
@@ -93,7 +103,7 @@ Do not optimize further on this same window as if it were final. The next step i
 4. Test on the next unseen month.
 5. Compare against buy-and-hold, daily open-to-close long, and original continuation baseline.
 
-Carry these exit policies into the walk-forward test:
+If a new entry filter or regime classifier is built, carry these exit policies into its walk-forward test:
 
 - fixed `0.50R`
 - fixed `0.75R`
