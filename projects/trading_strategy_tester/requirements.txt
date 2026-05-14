@@ -1,3 +1,2 @@
 ibapi>=9.81.1
 PyYAML>=6.0
-plotly>=5.24

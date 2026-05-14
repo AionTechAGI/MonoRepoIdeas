@@ -1,16 +1,20 @@
-"""HTML chart generation for cached market data."""
+"""Fast HTML chart generation for cached market data."""
 
 from __future__ import annotations
 
 from datetime import datetime
+from html import escape
+import json
 import math
 from pathlib import Path
 
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-
 from trading_strategy_tester.data.historical_loader import HistoricalBar
 from trading_strategy_tester.data.range_downloader import parse_ibkr_bar_timestamp
+
+
+LIGHTWEIGHT_CHARTS_CDN = (
+    "https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"
+)
 
 
 def write_candlestick_volume_chart(
@@ -25,88 +29,29 @@ def write_candlestick_volume_chart(
     output.parent.mkdir(parents=True, exist_ok=True)
 
     timestamps = [parse_ibkr_bar_timestamp(bar.timestamp) for bar in bars]
-    x_values = list(range(len(bars)))
-    volumes = [bar.volume or 0 for bar in bars]
-    hover_text = [
-        "<br>".join(
-            [
-                f"Time: {timestamp:%Y-%m-%d %H:%M}",
-                f"Open: {bar.open:.2f}",
-                f"High: {bar.high:.2f}",
-                f"Low: {bar.low:.2f}",
-                f"Close: {bar.close:.2f}",
-                f"Volume: {bar.volume or 0:,.0f}",
-            ]
-        )
-        for timestamp, bar in zip(timestamps, bars)
+    chart_data = [
+        {
+            "time": index,
+            "timestamp": timestamp.strftime("%Y-%m-%d %H:%M"),
+            "open": round(bar.open, 4),
+            "high": round(bar.high, 4),
+            "low": round(bar.low, 4),
+            "close": round(bar.close, 4),
+            "volume": bar.volume or 0,
+        }
+        for index, (timestamp, bar) in enumerate(zip(timestamps, bars))
     ]
     tick_values, tick_text = market_time_ticks(timestamps)
+    tick_map = {str(value): text.replace("<br>", " ") for value, text in zip(tick_values, tick_text)}
 
-    fig = make_subplots(
-        rows=2,
-        cols=1,
-        shared_xaxes=True,
-        vertical_spacing=0.04,
-        row_heights=[0.76, 0.24],
-        subplot_titles=(title, "Volume"),
+    html = _render_lightweight_chart_html(
+        title=title,
+        data=chart_data,
+        tick_map=tick_map,
+        first_timestamp=timestamps[0].strftime("%Y-%m-%d %H:%M"),
+        last_timestamp=timestamps[-1].strftime("%Y-%m-%d %H:%M"),
     )
-    fig.add_trace(
-        go.Candlestick(
-            x=x_values,
-            open=[bar.open for bar in bars],
-            high=[bar.high for bar in bars],
-            low=[bar.low for bar in bars],
-            close=[bar.close for bar in bars],
-            name="OHLC",
-            text=hover_text,
-            hoverinfo="text",
-        ),
-        row=1,
-        col=1,
-    )
-    fig.add_trace(
-        go.Bar(
-            x=x_values,
-            y=volumes,
-            name="Volume",
-            marker_color="#4c78a8",
-            text=hover_text,
-            hoverinfo="text",
-        ),
-        row=2,
-        col=1,
-    )
-    fig.update_layout(
-        template="plotly_white",
-        height=850,
-        xaxis_rangeslider_visible=False,
-        legend_orientation="h",
-        legend_yanchor="bottom",
-        legend_y=1.02,
-        legend_xanchor="right",
-        legend_x=1,
-        margin=dict(l=60, r=30, t=70, b=45),
-    )
-    fig.update_xaxes(
-        type="linear",
-        tickmode="array",
-        tickvals=tick_values,
-        ticktext=tick_text,
-        row=1,
-        col=1,
-    )
-    fig.update_xaxes(
-        type="linear",
-        tickmode="array",
-        tickvals=tick_values,
-        ticktext=tick_text,
-        title_text="Trading sessions",
-        row=2,
-        col=1,
-    )
-    fig.update_yaxes(title_text="Price", row=1, col=1)
-    fig.update_yaxes(title_text="Volume", row=2, col=1)
-    fig.write_html(output, include_plotlyjs="cdn", full_html=True)
+    output.write_text(html, encoding="utf-8", newline="\n")
     return output
 
 
@@ -140,3 +85,219 @@ def market_time_ticks(
         [index for index, _timestamp in selected],
         [timestamp.strftime("%b %d<br>%Y") for _index, timestamp in selected],
     )
+
+
+def _render_lightweight_chart_html(
+    title: str,
+    data: list[dict[str, object]],
+    tick_map: dict[str, str],
+    first_timestamp: str,
+    last_timestamp: str,
+) -> str:
+    data_json = json.dumps(data, separators=(",", ":"))
+    tick_map_json = json.dumps(tick_map, separators=(",", ":"))
+    escaped_title = escape(title)
+    escaped_first = escape(first_timestamp)
+    escaped_last = escape(last_timestamp)
+
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{escaped_title}</title>
+  <script src="{LIGHTWEIGHT_CHARTS_CDN}"></script>
+  <style>
+    :root {{
+      --text: #17233c;
+      --muted: #5f6f89;
+      --grid: #e8edf5;
+      --up: #1f8f5f;
+      --down: #d64b3a;
+      --volume: rgba(76, 120, 168, 0.28);
+      --bg: #ffffff;
+    }}
+    html, body {{
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+    }}
+    body {{
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }}
+    header {{
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px 8px;
+      border-bottom: 1px solid var(--grid);
+    }}
+    h1 {{
+      margin: 0;
+      font-size: 17px;
+      font-weight: 650;
+      letter-spacing: 0;
+    }}
+    .meta {{
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }}
+    #chart {{
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 620px;
+    }}
+    #tooltip {{
+      position: absolute;
+      display: none;
+      pointer-events: none;
+      z-index: 10;
+      min-width: 190px;
+      padding: 8px 10px;
+      border: 1px solid #cdd7e5;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.96);
+      box-shadow: 0 8px 22px rgba(20, 35, 65, 0.14);
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--text);
+    }}
+    #tooltip .time {{
+      font-weight: 650;
+      margin-bottom: 4px;
+    }}
+    #tooltip .row {{
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+    }}
+    .warning {{
+      padding: 6px 18px 10px;
+      color: var(--muted);
+      font-size: 12px;
+      border-top: 1px solid var(--grid);
+    }}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>{escaped_title}</h1>
+    <div class="meta">Compressed market time | {len(data):,} bars | {escaped_first} -> {escaped_last}</div>
+  </header>
+  <main id="chart">
+    <div id="tooltip"></div>
+  </main>
+  <div class="warning">Rendered with canvas using compressed market time. Closed-market gaps are removed; hover shows exact bar timestamps.</div>
+  <script>
+    const rawData = {data_json};
+    const tickMap = {tick_map_json};
+    const container = document.getElementById('chart');
+    const tooltip = document.getElementById('tooltip');
+
+    const chart = LightweightCharts.createChart(container, {{
+      autoSize: true,
+      layout: {{
+        background: {{ type: 'solid', color: '#ffffff' }},
+        textColor: '#17233c',
+        fontFamily: 'Inter, Segoe UI, Arial, sans-serif',
+      }},
+      grid: {{
+        vertLines: {{ color: '#e8edf5' }},
+        horzLines: {{ color: '#e8edf5' }},
+      }},
+      rightPriceScale: {{
+        borderVisible: false,
+        scaleMargins: {{ top: 0.08, bottom: 0.28 }},
+      }},
+      timeScale: {{
+        borderVisible: false,
+        timeVisible: false,
+        secondsVisible: false,
+        tickMarkFormatter: (time) => tickMap[String(time)] || '',
+      }},
+      crosshair: {{
+        mode: LightweightCharts.CrosshairMode.Normal,
+      }},
+      handleScale: {{
+        axisPressedMouseMove: true,
+        mouseWheel: true,
+        pinch: true,
+      }},
+      handleScroll: {{
+        mouseWheel: true,
+        pressedMouseMove: true,
+        horzTouchDrag: true,
+        vertTouchDrag: false,
+      }},
+    }});
+
+    const candles = rawData.map((bar) => ({{
+      time: bar.time,
+      open: bar.open,
+      high: bar.high,
+      low: bar.low,
+      close: bar.close,
+    }}));
+    const volumes = rawData.map((bar) => ({{
+      time: bar.time,
+      value: bar.volume,
+      color: bar.close >= bar.open ? 'rgba(31, 143, 95, 0.28)' : 'rgba(214, 75, 58, 0.28)',
+    }}));
+
+    const candleSeries = chart.addCandlestickSeries({{
+      upColor: '#1f8f5f',
+      downColor: '#d64b3a',
+      borderUpColor: '#1f8f5f',
+      borderDownColor: '#d64b3a',
+      wickUpColor: '#1f8f5f',
+      wickDownColor: '#d64b3a',
+    }});
+    candleSeries.setData(candles);
+
+    const volumeSeries = chart.addHistogramSeries({{
+      priceFormat: {{ type: 'volume' }},
+      priceScaleId: '',
+    }});
+    volumeSeries.priceScale().applyOptions({{
+      scaleMargins: {{ top: 0.82, bottom: 0 }},
+    }});
+    volumeSeries.setData(volumes);
+
+    const dataByTime = new Map(rawData.map((bar) => [bar.time, bar]));
+
+    chart.subscribeCrosshairMove((param) => {{
+      if (!param || param.time === undefined || !param.point || param.point.x < 0 || param.point.y < 0) {{
+        tooltip.style.display = 'none';
+        return;
+      }}
+      const bar = dataByTime.get(param.time);
+      if (!bar) {{
+        tooltip.style.display = 'none';
+        return;
+      }}
+      tooltip.style.display = 'block';
+      tooltip.innerHTML = `
+        <div class="time">${{bar.timestamp}}</div>
+        <div class="row"><span>Open</span><b>${{bar.open.toFixed(2)}}</b></div>
+        <div class="row"><span>High</span><b>${{bar.high.toFixed(2)}}</b></div>
+        <div class="row"><span>Low</span><b>${{bar.low.toFixed(2)}}</b></div>
+        <div class="row"><span>Close</span><b>${{bar.close.toFixed(2)}}</b></div>
+        <div class="row"><span>Volume</span><b>${{Math.round(bar.volume).toLocaleString()}}</b></div>
+      `;
+      const left = Math.min(param.point.x + 16, container.clientWidth - 230);
+      const top = Math.max(8, Math.min(param.point.y + 16, container.clientHeight - 150));
+      tooltip.style.left = `${{left}}px`;
+      tooltip.style.top = `${{top}}px`;
+    }});
+
+    chart.timeScale().fitContent();
+  </script>
+</body>
+</html>
+"""

@@ -60,6 +60,8 @@ Latest generated report:
 
 Charts use compressed market time so weekends, holidays, and overnight market closures do not create empty visual gaps.
 
+The report renderer uses TradingView Lightweight Charts on canvas for intraday OHLC data. This is much faster than SVG-based Plotly candlesticks for multi-thousand-bar charts.
+
 ## Structure
 
 - `docs/` local project documentation
