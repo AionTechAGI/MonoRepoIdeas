@@ -76,9 +76,9 @@ py scripts\check_ibkr_connection.py --config config\ibkr_config.yaml --port 4002
 - selected account starts with `DU`
 - receives account summary
 
-## Current Blocker
+## Connection Result
 
-Current local attempts against both standard paper ports return IBKR error `502`.
+Initial local attempts against both standard paper ports returned IBKR error `502`.
 
 That means Python cannot open a valid socket to TWS/Gateway yet.
 
@@ -91,9 +91,13 @@ Most likely causes:
 - Windows firewall or security software blocks localhost connection
 - another TWS/Gateway instance is using a different port
 
+After TWS was configured by the user, the connection passed on TWS paper port `7497`.
+
+Gateway settings do not need to be visible in TWS. IB Gateway is a separate app. For this project, TWS on `7497` is sufficient.
+
 ## What I Can Do After You Start TWS/Gateway
 
-Once TWS or Gateway is open and API is enabled, I can run:
+Once TWS is open and API is enabled, I can run:
 
 ```powershell
 py scripts\check_ibkr_connection.py --config config\ibkr_config.yaml
@@ -101,9 +105,16 @@ py scripts\check_ibkr_connection.py --config config\ibkr_config.yaml
 
 If it succeeds, the next checkpoint is:
 
-1. save the detected DU account in local config if you want
-2. verify market data type callbacks
-3. request account summary
-4. request a tiny historical data sample
-5. cache historical bars locally
-6. keep paper trading in read-only signal mode
+1. verify market data type callbacks
+2. request a tiny historical data sample
+3. cache historical bars locally
+4. keep paper trading in read-only signal mode
+
+Completed after TWS setup:
+
+- paper connection passed
+- account summary was received
+- historical sample request passed
+- one `SPY` one-minute RTH bar was cached locally
+- live market data probe showed missing live API subscription for `SPY`
+- delayed market data probe returned delayed status and execution stayed blocked

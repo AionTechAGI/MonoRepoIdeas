@@ -32,6 +32,9 @@ dist/
 projects/*/outputs/
 projects/*/artifacts/generated/
 projects/*/artifacts/tmp/
+projects/*/storage/*.sqlite
+projects/*/storage/*.sqlite3
+projects/*/storage/*.db
 
 # Local runtime clutter
 *.log

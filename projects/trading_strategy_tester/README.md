@@ -24,12 +24,28 @@ Check the IBKR paper connection:
 py scripts\check_ibkr_connection.py --config config\ibkr_config.yaml
 ```
 
+Request a read-only historical data sample and cache it locally:
+
+```powershell
+py scripts\probe_historical_data.py --symbol SPY --primary-exchange ARCA --duration "1 D" --bar-size "1 min"
+```
+
+Probe market data status without placing orders:
+
+```powershell
+py scripts\probe_market_data_status.py --symbol SPY --primary-exchange ARCA --market-data-type 1
+```
+
 Expected local paper ports:
 
 - TWS paper: `127.0.0.1:7497`
 - IB Gateway paper: `127.0.0.1:4002`
 
+TWS paper on port `7497` is enough for the first version. IB Gateway is optional.
+
 The first version is read-only by default. `trading_enabled` must remain `false` until read-only signal mode is verified.
+
+If IBKR returns delayed market data, execution remains blocked unless `allow_delayed_data_for_testing` is explicitly enabled.
 
 ## Structure
 

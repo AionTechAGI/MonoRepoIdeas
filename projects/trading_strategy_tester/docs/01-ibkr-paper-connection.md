@@ -56,6 +56,8 @@ For TWS Paper:
 py scripts\check_ibkr_connection.py --config config\ibkr_config.yaml
 ```
 
+TWS on paper port `7497` is enough for the first version. IB Gateway is optional and only uses paper port `4002` if you run Gateway instead of TWS.
+
 For IB Gateway Paper:
 
 1. Start IB Gateway and log into Paper Trading.
@@ -79,7 +81,13 @@ Meaning:
 - firewall/security software blocks the local socket, or
 - remote/trusted IP settings are wrong if not connecting from localhost.
 
-No account was detected and no orders were sent.
+On the next local run after TWS was configured, the smoke test passed on `127.0.0.1:7497`: `nextValidId`, TWS current time, managed paper account, account summary, and market/HMDS data farm status messages were received. The account id is intentionally not committed to repo documentation.
+
+Market data status probe:
+
+- live `SPY` API market data request returned IBKR `10089`, meaning the additional live subscription is required for API market data and delayed data is available
+- delayed `SPY` request returned `marketDataType=3`
+- execution remains blocked because `allow_delayed_data_for_testing: false`
 
 See `07-user-setup-checklist.md` for the exact manual setup steps.
 

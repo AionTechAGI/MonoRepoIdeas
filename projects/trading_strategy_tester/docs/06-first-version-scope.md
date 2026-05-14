@@ -41,9 +41,19 @@ Implemented:
 - safety startup warning
 - DU account guard
 - CLI overrides for host, port, client id, and account
+- read-only historical data probe
+- local SQLite bar cache
+- read-only market data type probe
 
-Blocked until local IBKR app is ready:
+Verified locally:
 
-- actual connection to paper account
-- account summary verification
-- market data status verification
+- TWS paper connection on `127.0.0.1:7497`
+- paper account discovery with DU-prefix guard
+- account summary request
+- historical `1 min` bar request for a command-line symbol
+- delayed market data callback detection and execution block
+
+Next:
+
+- incremental historical downloader
+- opening range and VWAP calculations
