@@ -110,3 +110,77 @@ def latest_cached_timestamp(
     finally:
         conn.close()
     return str(row[0]) if row and row[0] is not None else None
+
+
+def read_bars(
+    path: str | Path,
+    symbol: str,
+    bar_size: str,
+    start_timestamp: str | None = None,
+    end_timestamp: str | None = None,
+    source: str = "IBKR",
+) -> list[HistoricalBar]:
+    cache_path = Path(path)
+    if not cache_path.exists():
+        return []
+
+    predicates = ["symbol = ?", "bar_size = ?", "source = ?"]
+    values: list[object] = [symbol.upper(), bar_size, source]
+    if start_timestamp is not None:
+        predicates.append("timestamp >= ?")
+        values.append(start_timestamp)
+    if end_timestamp is not None:
+        predicates.append("timestamp <= ?")
+        values.append(end_timestamp)
+
+    conn = sqlite3.connect(cache_path)
+    try:
+        rows = conn.execute(
+            f"""
+            SELECT timestamp, open, high, low, close, volume, wap, bar_count
+            FROM bars
+            WHERE {' AND '.join(predicates)}
+            ORDER BY timestamp
+            """,
+            tuple(values),
+        ).fetchall()
+    finally:
+        conn.close()
+
+    return [
+        HistoricalBar(
+            timestamp=str(row[0]),
+            open=float(row[1]),
+            high=float(row[2]),
+            low=float(row[3]),
+            close=float(row[4]),
+            volume=float(row[5]) if row[5] is not None else None,
+            wap=float(row[6]) if row[6] is not None else None,
+            bar_count=int(row[7]) if row[7] is not None else None,
+        )
+        for row in rows
+    ]
+
+
+def count_bars(
+    path: str | Path,
+    symbol: str,
+    bar_size: str,
+    source: str = "IBKR",
+) -> int:
+    cache_path = Path(path)
+    if not cache_path.exists():
+        return 0
+    conn = sqlite3.connect(cache_path)
+    try:
+        row = conn.execute(
+            """
+            SELECT COUNT(*)
+            FROM bars
+            WHERE symbol = ? AND bar_size = ? AND source = ?
+            """,
+            (symbol.upper(), bar_size, source),
+        ).fetchone()
+    finally:
+        conn.close()
+    return int(row[0]) if row else 0

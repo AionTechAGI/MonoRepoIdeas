@@ -30,6 +30,12 @@ Request a read-only historical data sample and cache it locally:
 py scripts\probe_historical_data.py --symbol SPY --primary-exchange ARCA --duration "1 D" --bar-size "1 min"
 ```
 
+Download a historical range and generate a candlestick/volume HTML chart:
+
+```powershell
+py scripts\download_historical_range.py --symbol NVDA --primary-exchange NASDAQ --start 2026-01-01 --end 2026-05-14 --bar-size "5 mins" --duration "1 M" --output artifacts\reports\nvda_5min_rth_2026-01-01_2026-05-14.html
+```
+
 Probe market data status without placing orders:
 
 ```powershell
@@ -46,6 +52,11 @@ TWS paper on port `7497` is enough for the first version. IB Gateway is optional
 The first version is read-only by default. `trading_enabled` must remain `false` until read-only signal mode is verified.
 
 If IBKR returns delayed market data, execution remains blocked unless `allow_delayed_data_for_testing` is explicitly enabled.
+
+Latest generated report:
+
+- `artifacts/reports/nvda_5min_rth_2026-01-01_2026-05-14.html`
+- `artifacts/reports/nvda_5min_rth_2026-01-01_2026-05-14_summary.md`
 
 ## Structure
 

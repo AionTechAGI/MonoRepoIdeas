@@ -78,6 +78,7 @@ class HistoricalDataApp(EWrapper, EClient):  # type: ignore[misc]
 def request_historical_bars(
     settings: IbkrSettings,
     instrument: Instrument,
+    end_datetime: str = "",
     duration: str = "1 D",
     bar_size: str = "1 min",
     what_to_show: str = "TRADES",
@@ -122,7 +123,7 @@ def request_historical_bars(
         app.reqHistoricalData(
             9101,
             to_ib_contract(instrument),
-            "",
+            end_datetime,
             duration,
             bar_size,
             what_to_show,

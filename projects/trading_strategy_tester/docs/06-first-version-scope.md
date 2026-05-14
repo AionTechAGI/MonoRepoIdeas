@@ -44,6 +44,8 @@ Implemented:
 - read-only historical data probe
 - local SQLite bar cache
 - read-only market data type probe
+- historical range downloader with monthly chunks
+- candlestick/volume HTML chart generator
 
 Verified locally:
 
@@ -52,8 +54,8 @@ Verified locally:
 - account summary request
 - historical `1 min` bar request for a command-line symbol
 - delayed market data callback detection and execution block
+- `NVDA` 5-minute RTH range from `2026-01-01` through `2026-05-14`
 
 Next:
 
-- incremental historical downloader
 - opening range and VWAP calculations

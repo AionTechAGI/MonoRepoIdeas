@@ -22,6 +22,11 @@ def main() -> int:
     parser.add_argument("--symbol", required=True, help="Stock symbol to request.")
     parser.add_argument("--primary-exchange", default="", help="Optional primary exchange.")
     parser.add_argument("--duration", default="1 D", help="IBKR duration string.")
+    parser.add_argument(
+        "--end-datetime",
+        default="",
+        help='IBKR endDateTime, for example "20260514 16:00:00 US/Eastern".',
+    )
     parser.add_argument("--bar-size", default="1 min", help="IBKR bar size string.")
     parser.add_argument("--what-to-show", default="TRADES", help="IBKR historical data type.")
     parser.add_argument("--outside-rth", action="store_true", help="Include outside RTH bars.")
@@ -61,6 +66,7 @@ def main() -> int:
     result = request_historical_bars(
         settings=settings,
         instrument=instrument,
+        end_datetime=args.end_datetime,
         duration=args.duration,
         bar_size=args.bar_size,
         what_to_show=args.what_to_show,
