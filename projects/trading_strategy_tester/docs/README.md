@@ -12,3 +12,4 @@ Use this directory for strategy methodology, data assumptions, experiment notes,
 - `05-risk-execution-reporting.md`
 - `06-first-version-scope.md`
 - `07-user-setup-checklist.md`
+- `08-codex-handoff.md`

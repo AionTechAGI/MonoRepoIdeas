@@ -84,3 +84,5 @@ The report renderer uses TradingView Lightweight Charts on canvas for intraday O
 - `src/` source code
 - `tests/` automated checks
 - `artifacts/` reports and outputs
+
+Continuation context for another Codex session is recorded in `docs/08-codex-handoff.md`.
